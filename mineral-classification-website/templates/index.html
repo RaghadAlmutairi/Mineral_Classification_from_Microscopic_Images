@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mineral Classification</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Background Image */
+        body {
+            background: url("static/images/Mineral.jpg") no-repeat center center fixed; /* Change to your image path */
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: white; /* Make text readable */
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            width: 150px; /* Adjust size */
+            height: auto;
+        }
+        .upload-section, .result-section {
+            background: rgba(255, 255, 255, 0.85); /* Transparent white background */
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: black;
+        }
+        .btn-upload {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+        }
+        .result-section {
+            margin-top: 30px;
+        }
+        #uploadedImage {
+            max-width: 100%;
+            height: auto;
+            margin-top: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        .result-text {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOGO -->
+        <img src="static/images/logo.png" alt="Mineral Classification Logo" class="logo">  <!-- Change to your logo path -->
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h2 class="mb-3">Upload Mineral Image</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="imageUpload" name="image" accept="image/*" required>
+                    <label class="custom-file-label" for="imageUpload">Choose an image...</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-upload mt-3">Upload and Classify</button>
+            </form>
+        </div>
+
+        <!-- Classification Result Section -->
+        <div class="result-section">
+            <h2>Classification Result</h2>
+            <img id="uploadedImage" src="#" alt="Uploaded Image">
+            <p id="resultText" class="result-text">Please upload an image to classify.</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $(".custom-file-input").on("change", function() {
+                var fileName = $(this).val().split("\\").pop();
+                $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+            });
+
+            $('#uploadForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+
+                var fileInput = $('#imageUpload')[0];
+                if (fileInput.files && fileInput.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#uploadedImage').attr('src', e.target.result).fadeIn();
+                    };
+                    reader.readAsDataURL(fileInput.files[0]);
+                }
+
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('#resultText').html('<span style="color: green; font-size: 30px; font-weight: bold;">Classification: ' + response.class + '</span>');
+                    },
+                    error: function(response) {
+                        $('#resultText').html('<span style="color: red;">Error: ' + response.responseJSON.error + '</span>');
+                    },
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                });
+            });
+        });
+    </script>
+</body>
+</html>
